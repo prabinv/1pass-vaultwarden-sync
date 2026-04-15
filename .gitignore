@@ -1,0 +1,15 @@
+# Binaries
+sync
+1pass-vaultwarden-sync
+
+# IDE
+.idea/
+.vscode/
+
+# OMC state (not project source)
+.omc/
+.claude/
+
+# Go
+*.test
+*.out
