@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("{\"Id\":\"abc\",\"Name\":\"Test\",\"Type\":1,\"RevisionDate\":\"2024-01-01T00:00:00Z\",\"Login\":{\"Username\":\"user\",\"Password\":\"pass\"}}")

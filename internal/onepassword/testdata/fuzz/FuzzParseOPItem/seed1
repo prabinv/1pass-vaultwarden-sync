@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("{\"id\":\"abc\",\"title\":\"Test\",\"category\":\"LOGIN\",\"updated_at\":\"2024-01-01T00:00:00Z\",\"fields\":[{\"id\":\"username\",\"label\":\"username\",\"value\":\"user\"}]}")

@@ -1,0 +1,206 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1776213893266,
+  "projectRoot": "/Users/prabin.varma/temp/1pass-vaultwarden-sync",
+  "techStack": {
+    "languages": [
+      {
+        "name": "Go",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "go.mod"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "go",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {},
+  "hotPaths": [
+    {
+      "path": "internal/tui/model.go",
+      "accessCount": 7,
+      "lastAccessed": 1776216206611,
+      "type": "file"
+    },
+    {
+      "path": "internal/tui/progress.go",
+      "accessCount": 2,
+      "lastAccessed": 1776216178099,
+      "type": "file"
+    },
+    {
+      "path": "go.mod",
+      "accessCount": 1,
+      "lastAccessed": 1776213958641,
+      "type": "file"
+    },
+    {
+      "path": "CLAUDE.md",
+      "accessCount": 1,
+      "lastAccessed": 1776214034031,
+      "type": "file"
+    },
+    {
+      "path": "internal/config/config_test.go",
+      "accessCount": 1,
+      "lastAccessed": 1776215596501,
+      "type": "file"
+    },
+    {
+      "path": "internal/config/config.go",
+      "accessCount": 1,
+      "lastAccessed": 1776215604249,
+      "type": "file"
+    },
+    {
+      "path": "internal/sync/plan.go",
+      "accessCount": 1,
+      "lastAccessed": 1776215645107,
+      "type": "file"
+    },
+    {
+      "path": "internal/sync/engine_test.go",
+      "accessCount": 1,
+      "lastAccessed": 1776215670719,
+      "type": "file"
+    },
+    {
+      "path": "internal/sync/engine.go",
+      "accessCount": 1,
+      "lastAccessed": 1776215681966,
+      "type": "file"
+    },
+    {
+      "path": "internal/onepassword/client_test.go",
+      "accessCount": 1,
+      "lastAccessed": 1776215712404,
+      "type": "file"
+    },
+    {
+      "path": "internal/onepassword/client.go",
+      "accessCount": 1,
+      "lastAccessed": 1776215997576,
+      "type": "file"
+    },
+    {
+      "path": "internal/vaultwarden/client_test.go",
+      "accessCount": 1,
+      "lastAccessed": 1776216056554,
+      "type": "file"
+    },
+    {
+      "path": "internal/vaultwarden/client.go",
+      "accessCount": 1,
+      "lastAccessed": 1776216074627,
+      "type": "file"
+    },
+    {
+      "path": "internal/tui/styles.go",
+      "accessCount": 1,
+      "lastAccessed": 1776216101352,
+      "type": "file"
+    },
+    {
+      "path": "internal/tui/list.go",
+      "accessCount": 1,
+      "lastAccessed": 1776216113116,
+      "type": "file"
+    },
+    {
+      "path": "internal/tui/model_test.go",
+      "accessCount": 1,
+      "lastAccessed": 1776216169607,
+      "type": "file"
+    },
+    {
+      "path": "cmd/sync/main.go",
+      "accessCount": 1,
+      "lastAccessed": 1776216290989,
+      "type": "file"
+    },
+    {
+      "path": "README.md",
+      "accessCount": 1,
+      "lastAccessed": 1776218453053,
+      "type": "file"
+    },
+    {
+      "path": "internal/sync/testdata/fuzz/FuzzTimestampCompare/seed1",
+      "accessCount": 1,
+      "lastAccessed": 1776218472369,
+      "type": "file"
+    },
+    {
+      "path": "internal/sync/testdata/fuzz/FuzzTimestampCompare/seed2",
+      "accessCount": 1,
+      "lastAccessed": 1776218474340,
+      "type": "file"
+    },
+    {
+      "path": "internal/sync/testdata/fuzz/FuzzTimestampCompare/seed3",
+      "accessCount": 1,
+      "lastAccessed": 1776218476783,
+      "type": "file"
+    },
+    {
+      "path": "internal/vaultwarden/testdata/fuzz/FuzzParseVaultwardenItem/seed1",
+      "accessCount": 1,
+      "lastAccessed": 1776218478976,
+      "type": "file"
+    },
+    {
+      "path": "internal/vaultwarden/testdata/fuzz/FuzzParseVaultwardenItem/seed2",
+      "accessCount": 1,
+      "lastAccessed": 1776218481263,
+      "type": "file"
+    },
+    {
+      "path": "internal/vaultwarden/testdata/fuzz/FuzzParseVaultwardenItem/seed3",
+      "accessCount": 1,
+      "lastAccessed": 1776218483842,
+      "type": "file"
+    },
+    {
+      "path": "internal/onepassword/testdata/fuzz/FuzzParseOPItem/seed1",
+      "accessCount": 1,
+      "lastAccessed": 1776218486549,
+      "type": "file"
+    },
+    {
+      "path": "internal/onepassword/testdata/fuzz/FuzzParseOPItem/seed2",
+      "accessCount": 1,
+      "lastAccessed": 1776218488567,
+      "type": "file"
+    },
+    {
+      "path": "internal/onepassword/testdata/fuzz/FuzzParseOPItem/seed3",
+      "accessCount": 1,
+      "lastAccessed": 1776218490361,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}
