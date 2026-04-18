@@ -54,35 +54,38 @@ func (s *JobStore) Create(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (*Sy
 	return &j, nil
 }
 
-// UpdateStatus transitions a job's status. Uses pool directly — safe because jobrunner
-// already holds the jobID from a prior RLS-protected Create.
-func (s *JobStore) UpdateStatus(ctx context.Context, jobID uuid.UUID, status string, errMsg *string) error {
-	_, err := s.pool.Exec(ctx, `
-		UPDATE sync_jobs SET
-			status      = $1,
-			error       = $2,
-			started_at  = CASE WHEN $1 = 'running'           THEN now() ELSE started_at  END,
-			finished_at = CASE WHEN $1 IN ('done', 'failed') THEN now() ELSE finished_at END
-		WHERE id = $3`,
-		status, errMsg, jobID,
-	)
-	if err != nil {
-		return fmt.Errorf("update job status: %w", err)
-	}
-	return nil
+// UpdateStatus transitions a job's status. Runs inside WithUserID to enforce RLS.
+func (s *JobStore) UpdateStatus(ctx context.Context, userID, jobID uuid.UUID, status string, errMsg *string) error {
+	return WithUserID(ctx, s.pool, userID, func(tx pgx.Tx) error {
+		_, err := tx.Exec(ctx, `
+			UPDATE sync_jobs SET
+				status      = $1,
+				error       = $2,
+				started_at  = CASE WHEN $1 = 'running'           THEN now() ELSE started_at  END,
+				finished_at = CASE WHEN $1 IN ('done', 'failed') THEN now() ELSE finished_at END
+			WHERE id = $3`,
+			status, errMsg, jobID,
+		)
+		if err != nil {
+			return fmt.Errorf("update job status: %w", err)
+		}
+		return nil
+	})
 }
 
-// AppendEvent persists one progress event. Uses pool directly (see UpdateStatus note).
-func (s *JobStore) AppendEvent(ctx context.Context, jobID uuid.UUID, seq int, eventType string, payload json.RawMessage) error {
-	_, err := s.pool.Exec(ctx,
-		`INSERT INTO sync_job_events (job_id, sequence, event_type, payload)
-		 VALUES ($1, $2, $3, $4)`,
-		jobID, seq, eventType, payload,
-	)
-	if err != nil {
-		return fmt.Errorf("append event: %w", err)
-	}
-	return nil
+// AppendEvent persists one progress event. Runs inside WithUserID to enforce RLS.
+func (s *JobStore) AppendEvent(ctx context.Context, userID, jobID uuid.UUID, seq int, eventType string, payload json.RawMessage) error {
+	return WithUserID(ctx, s.pool, userID, func(tx pgx.Tx) error {
+		_, err := tx.Exec(ctx,
+			`INSERT INTO sync_job_events (job_id, sequence, event_type, payload)
+			 VALUES ($1, $2, $3, $4)`,
+			jobID, seq, eventType, payload,
+		)
+		if err != nil {
+			return fmt.Errorf("append event: %w", err)
+		}
+		return nil
+	})
 }
 
 // ListEvents returns all events for jobID ordered by sequence. Must run inside WithUserID (RLS).

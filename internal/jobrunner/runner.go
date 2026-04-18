@@ -85,12 +85,12 @@ func (r *Runner) Enqueue(ctx context.Context, jobID, userID uuid.UUID) {
 
 func (r *Runner) run(ctx context.Context, jobID, userID uuid.UUID) {
 	fail := func(msg string) {
-		r.jobStore.UpdateStatus(ctx, jobID, "failed", &msg) //nolint:errcheck
+		r.jobStore.UpdateStatus(ctx, userID, jobID, "failed", &msg) //nolint:errcheck
 		payload, _ := json.Marshal(map[string]string{"error": msg})
 		r.Broadcast(jobID, Event{Type: "done", Payload: payload})
 	}
 
-	if err := r.jobStore.UpdateStatus(ctx, jobID, "running", nil); err != nil {
+	if err := r.jobStore.UpdateStatus(ctx, userID, jobID, "running", nil); err != nil {
 		slog.ErrorContext(ctx, "jobrunner: mark running", "err", err)
 		return
 	}
@@ -157,13 +157,13 @@ func (r *Runner) run(ctx context.Context, jobID, userID uuid.UUID) {
 		payload, _ := json.Marshal(pe)
 		e := Event{Type: pe.Action.String(), Payload: payload}
 		r.Broadcast(jobID, e)
-		if err := r.jobStore.AppendEvent(ctx, jobID, seq, e.Type, e.Payload); err != nil {
+		if err := r.jobStore.AppendEvent(ctx, userID, jobID, seq, e.Type, e.Payload); err != nil {
 			slog.ErrorContext(ctx, "jobrunner: append event", "err", err)
 		}
 		seq++
 	}
 
-	if err := r.jobStore.UpdateStatus(ctx, jobID, "done", nil); err != nil {
+	if err := r.jobStore.UpdateStatus(ctx, userID, jobID, "done", nil); err != nil {
 		slog.ErrorContext(ctx, "jobrunner: mark done", "err", err)
 	}
 	donePayload, _ := json.Marshal(map[string]string{"error": ""})

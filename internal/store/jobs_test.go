@@ -40,12 +40,12 @@ func TestJobStore_FullLifecycle(t *testing.T) {
 		t.Fatalf("Create job: %v", err)
 	}
 
-	if err := js.UpdateStatus(ctx, jobID, "running", nil); err != nil {
+	if err := js.UpdateStatus(ctx, user.ID, jobID, "running", nil); err != nil {
 		t.Fatalf("UpdateStatus running: %v", err)
 	}
 
 	payload, _ := json.Marshal(map[string]string{"item": "test-item"})
-	if err := js.AppendEvent(ctx, jobID, 1, "create", payload); err != nil {
+	if err := js.AppendEvent(ctx, user.ID, jobID, 1, "create", payload); err != nil {
 		t.Fatalf("AppendEvent: %v", err)
 	}
 
@@ -66,7 +66,7 @@ func TestJobStore_FullLifecycle(t *testing.T) {
 	}
 
 	errMsg := ""
-	if err := js.UpdateStatus(ctx, jobID, "done", &errMsg); err != nil {
+	if err := js.UpdateStatus(ctx, user.ID, jobID, "done", &errMsg); err != nil {
 		t.Fatalf("UpdateStatus done: %v", err)
 	}
 
