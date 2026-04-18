@@ -2,6 +2,7 @@ package store_test
 
 import (
 	"context"
+	"errors"
 	"os"
 	"testing"
 
@@ -54,5 +55,19 @@ func TestWithUserID_SetsLocalConfig(t *testing.T) {
 	}
 	if got != id {
 		t.Fatalf("expected app.user_id=%q, got %q", id, got)
+	}
+}
+
+func TestWithUserID_RollsBackOnError(t *testing.T) {
+	pool := testPool(t)
+	ctx := context.Background()
+	id := "22222222-2222-2222-2222-222222222222"
+	sentinelErr := errors.New("fn error")
+
+	err := store.WithUserID(ctx, pool, mustParseUUID(id), func(tx pgx.Tx) error {
+		return sentinelErr
+	})
+	if err != sentinelErr {
+		t.Fatalf("expected sentinel error, got %v", err)
 	}
 }

@@ -35,5 +35,8 @@ func WithUserID(ctx context.Context, pool *pgxpool.Pool, userID uuid.UUID, fn fu
 	if err := fn(tx); err != nil {
 		return err
 	}
-	return tx.Commit(ctx)
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit tx: %w", err)
+	}
+	return nil
 }
