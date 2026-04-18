@@ -1,0 +1,5 @@
+DROP TABLE IF EXISTS sync_job_events;
+DROP TABLE IF EXISTS sync_jobs;
+DROP TABLE IF EXISTS credentials;
+DROP TABLE IF EXISTS users;
+DROP EXTENSION IF EXISTS pgcrypto;
