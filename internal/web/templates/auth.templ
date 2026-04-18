@@ -1,0 +1,31 @@
+package templates
+
+templ Login(errMsg string) {
+	@Layout("Login") {
+		<h1>Login</h1>
+		if errMsg != "" {
+			<p class="error">{ errMsg }</p>
+		}
+		<form method="POST" action="/auth/login">
+			<label>Email<input type="email" name="email" required/></label>
+			<label>Password<input type="password" name="password" required/></label>
+			<button type="submit">Login</button>
+		</form>
+		<p><a href="/auth/register">Create an account</a></p>
+	}
+}
+
+templ Register(errMsg string) {
+	@Layout("Register") {
+		<h1>Create Account</h1>
+		if errMsg != "" {
+			<p class="error">{ errMsg }</p>
+		}
+		<form method="POST" action="/auth/register">
+			<label>Email<input type="email" name="email" required/></label>
+			<label>Password<input type="password" name="password" required minlength="8"/></label>
+			<button type="submit">Register</button>
+		</form>
+		<p><a href="/auth/login">Already have an account?</a></p>
+	}
+}

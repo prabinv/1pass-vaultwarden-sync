@@ -1,0 +1,44 @@
+package templates
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/prabinv/1pass-vaultwarden-sync/internal/store"
+)
+
+templ Dashboard(jobs []store.SyncJob) {
+	@Layout("Dashboard") {
+		@Nav()
+		<h1>Sync History</h1>
+		<form method="POST" action="/sync/trigger">
+			<button type="submit">Trigger Sync</button>
+		</form>
+		if len(jobs) == 0 {
+			<p>No syncs yet. Click "Trigger Sync" to start.</p>
+		} else {
+			<table>
+				<thead>
+					<tr><th>Job ID</th><th>Status</th><th>Started</th><th>Finished</th></tr>
+				</thead>
+				<tbody>
+					for _, j := range jobs {
+						<tr>
+							<td><a href={ templ.SafeURL(fmt.Sprintf("/sync/jobs/%s", j.ID)) }>{ j.ID.String()[:8] }…</a></td>
+							<td>{ j.Status }</td>
+							<td>{ fmtTime(j.StartedAt) }</td>
+							<td>{ fmtTime(j.FinishedAt) }</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		}
+	}
+}
+
+func fmtTime(t *time.Time) string {
+	if t == nil {
+		return "—"
+	}
+	return t.Format("2006-01-02 15:04:05")
+}

@@ -1,0 +1,39 @@
+package templates
+
+templ Layout(title string) {
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+		<title>{ title } — 1pass-vaultwarden-sync</title>
+		<script type="module" src="https://cdn.jsdelivr.net/gh/starfederation/datastar@v1.0.0-beta.11/bundles/datastar.js"></script>
+		<style>
+			body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+			.error  { color: #c0392b; background: #fdecea; padding: .5rem; border-radius: 4px; }
+			.success{ color: #1a7a4a; background: #eafaf1; padding: .5rem; border-radius: 4px; }
+			nav a   { margin-right: 1rem; text-decoration: none; }
+			table   { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+			td, th  { padding: .5rem .75rem; border-bottom: 1px solid #eee; text-align: left; }
+			th      { background: #f8f8f8; font-weight: 600; }
+			label   { display: block; margin: .5rem 0 1rem; }
+			input   { width: 100%; padding: .5rem; box-sizing: border-box; margin-top: .25rem; }
+			button  { padding: .5rem 1.25rem; cursor: pointer; }
+		</style>
+	</head>
+	<body>
+		{ children... }
+	</body>
+	</html>
+}
+
+templ Nav() {
+	<nav>
+		<a href="/">Dashboard</a>
+		<a href="/credentials">Credentials</a>
+		<form method="POST" action="/auth/logout" style="display:inline">
+			<button type="submit">Logout</button>
+		</form>
+	</nav>
+	<hr/>
+}

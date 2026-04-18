@@ -1,0 +1,27 @@
+package templates
+
+import (
+	"fmt"
+
+	"github.com/prabinv/1pass-vaultwarden-sync/internal/store"
+)
+
+templ JobDetail(job *store.SyncJob) {
+	@Layout("Sync Job") {
+		@Nav()
+		<h1>Sync Job</h1>
+		<p>ID: <code>{ job.ID.String() }</code></p>
+		<p>Status: <strong id="job-status">{ job.Status }</strong></p>
+		<div
+			data-on-load={ fmt.Sprintf("$$get('/sync/jobs/%s/stream')", job.ID) }
+			data-signals="{events: []}"
+		>
+			<ul id="events">
+				<template data-for="event in $events">
+					<li data-text="event.type + ': ' + JSON.stringify(event.payload)"></li>
+				</template>
+			</ul>
+		</div>
+		<p><a href="/">← Back to Dashboard</a></p>
+	}
+}
