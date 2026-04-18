@@ -1,0 +1,145 @@
+version: '3'
+
+tasks:
+  default:
+    desc: List all available tasks
+    silent: true
+    cmds:
+      - task --list
+
+  # ── Build ──────────────────────────────────────────────────────────────────
+
+  build:
+    desc: Build the sync binary
+    cmds:
+      - go build -o sync ./cmd/sync
+
+  clean:
+    desc: Remove build artifacts and coverage output
+    cmds:
+      - rm -f sync 1pass-vaultwarden-sync coverage.out
+
+  # ── Test ───────────────────────────────────────────────────────────────────
+
+  test:
+    desc: Run all unit tests with the race detector
+    cmds:
+      - go test -race ./...
+
+  test:cover:
+    desc: Run tests and print per-function coverage
+    cmds:
+      - go test -coverprofile=coverage.out ./...
+      - go tool cover -func=coverage.out
+
+  test:cover:html:
+    desc: Open an HTML coverage report in the browser
+    cmds:
+      - go test -coverprofile=coverage.out ./...
+      - go tool cover -html=coverage.out
+
+  test:leak:
+    desc: Run all tests with race detector and cache disabled (exercises goleak TestMain hooks)
+    cmds:
+      - go test -race -count=1 ./...
+
+  check:
+    desc: Full CI-equivalent check — vet, lint, then race tests
+    cmds:
+      - task: vet
+      - task: lint
+      - task: test
+
+  # ── Fuzz ───────────────────────────────────────────────────────────────────
+
+  fuzz:timestamp:
+    desc: Fuzz timestamp comparison in the sync engine (30 s)
+    cmds:
+      - go test -fuzz=FuzzTimestampCompare -fuzztime=30s ./internal/sync/
+
+  fuzz:op:
+    desc: Fuzz 1Password item parsing (30 s)
+    cmds:
+      - go test -fuzz=FuzzParseOPItem -fuzztime=30s ./internal/onepassword/
+
+  fuzz:vw:
+    desc: Fuzz Vaultwarden item parsing (30 s)
+    cmds:
+      - go test -fuzz=FuzzParseVaultwardenItem -fuzztime=30s ./internal/vaultwarden/
+
+  fuzz:cipher:
+    desc: Fuzz CipherString parsing (30 s)
+    cmds:
+      - go test -fuzz=FuzzParseCipherString -fuzztime=30s ./internal/crypto/
+
+  fuzz:all:
+    desc: Run every fuzz target for 30 s each (sequential)
+    cmds:
+      - task: fuzz:timestamp
+      - task: fuzz:op
+      - task: fuzz:vw
+      - task: fuzz:cipher
+
+  # ── Code quality ───────────────────────────────────────────────────────────
+
+  fmt:
+    desc: Format all Go source files with gofmt
+    cmds:
+      - gofmt -w .
+
+  vet:
+    desc: Run go vet on all packages
+    cmds:
+      - go vet ./...
+
+  lint:
+    desc: Run go vet + staticcheck (install with go install honnef.co/go/tools/cmd/staticcheck@latest)
+    cmds:
+      - go vet ./...
+      - |
+        if command -v staticcheck >/dev/null 2>&1; then
+          staticcheck ./...
+        else
+          echo "[lint] staticcheck not found — run: go install honnef.co/go/tools/cmd/staticcheck@latest"
+        fi
+
+  tidy:
+    desc: Tidy go modules
+    cmds:
+      - go mod tidy
+
+  # ── Run ────────────────────────────────────────────────────────────────────
+
+  run:
+    desc: Run a one-shot sync (requires env vars; use -- to pass extra flags)
+    cmds:
+      - go run ./cmd/sync {{.CLI_ARGS}}
+
+  run:no-confirm:
+    desc: Run non-interactively — skip the TUI confirmation prompt
+    cmds:
+      - go run ./cmd/sync --no-confirm {{.CLI_ARGS}}
+
+  run:debug:
+    desc: Run with debug logging enabled (non-interactive)
+    cmds:
+      - go run ./cmd/sync --no-confirm --debug {{.CLI_ARGS}}
+
+  run:watch:
+    desc: "Run in watch/daemon mode. Override interval: task run:watch INTERVAL=10m"
+    vars:
+      INTERVAL: '{{.INTERVAL | default "5m"}}'
+    cmds:
+      - go run ./cmd/sync --watch {{.INTERVAL}}
+
+  server:
+    desc: Run the web server locally (requires .env)
+    cmds:
+      - go run ./cmd/server/
+
+  e2e:
+    desc: Run E2E tests against full stack in Docker
+    cmds:
+      - docker compose -f docker/docker-compose.test.yml up -d --wait
+      - defer: docker compose -f docker/docker-compose.test.yml down -v
+      - cd e2e && BASE_URL=http://localhost:8081 npx playwright test

@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: sync_test
+      POSTGRES_USER: sync
+      POSTGRES_PASSWORD: testpassword
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "sync"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+
+  server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8081:8080"
+    environment:
+      - DATABASE_URL=postgres://sync:testpassword@postgres:5432/sync_test?sslmode=disable
+      - ENCRYPTION_KEY=test-encryption-key-32-bytes-long!!
+      - JWT_SECRET=test-jwt-secret-for-e2e-tests-only!!
+    depends_on:
+      postgres:
+        condition: service_healthy
