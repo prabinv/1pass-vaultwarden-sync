@@ -4,12 +4,19 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 	"time"
+
+	"go.uber.org/goleak"
 
 	syncp "github.com/prabinv/1pass-vaultwarden-sync/internal/sync"
 	vw "github.com/prabinv/1pass-vaultwarden-sync/internal/vaultwarden"
 )
+
+func TestMain(m *testing.M) {
+	goleak.VerifyTestMain(m)
+}
 
 // --- item mapping tests ---
 
@@ -117,7 +124,7 @@ func TestClient_GetItem_Found(t *testing.T) {
 	defer srv.Close()
 
 	client := vw.NewTestClient(srv.URL, "fake-token")
-	item, err := client.GetItem(t.Context(), "vw-123")
+	item, err := client.GetItem(t.Context(), "Test") // look up by name
 	if err != nil {
 		t.Fatalf("GetItem() error: %v", err)
 	}
@@ -157,6 +164,46 @@ func TestClient_GetItem_ServerError(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error on server 500, got nil")
 	}
+}
+
+// --- concurrency tests ---
+
+// TestGetItem_Concurrent verifies that concurrent GetItem calls after WarmCache
+// do not race on the internal cipherByName map. go test -race will catch issues.
+func TestGetItem_Concurrent(t *testing.T) {
+	updatedAt := time.Date(2024, 6, 1, 12, 0, 0, 0, time.UTC)
+	ciphers := []vw.Cipher{
+		{ID: "1", Name: "Alpha", Type: 1, RevisionDate: updatedAt.Format(time.RFC3339)},
+		{ID: "2", Name: "Beta", Type: 1, RevisionDate: updatedAt.Format(time.RFC3339)},
+		{ID: "3", Name: "Gamma", Type: 1, RevisionDate: updatedAt.Format(time.RFC3339)},
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(vw.ListResponse{Data: ciphers})
+	}))
+	defer srv.Close()
+
+	client := vw.NewTestClient(srv.URL, "fake-token")
+	if err := client.WarmCache(t.Context()); err != nil {
+		t.Fatalf("WarmCache(): %v", err)
+	}
+
+	const workers = 8
+	var wg sync.WaitGroup
+	wg.Add(workers)
+	for i := 0; i < workers; i++ {
+		go func() {
+			defer wg.Done()
+			if _, err := client.GetItem(t.Context(), "Alpha"); err != nil {
+				t.Errorf("GetItem(): %v", err)
+			}
+			if _, err := client.GetItem(t.Context(), "missing"); err != nil {
+				t.Errorf("GetItem() missing: %v", err)
+			}
+		}()
+	}
+	wg.Wait()
 }
 
 // --- fuzz ---

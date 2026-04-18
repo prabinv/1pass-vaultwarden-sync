@@ -3,11 +3,18 @@ package sync_test
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
+	"go.uber.org/goleak"
+
 	syncp "github.com/prabinv/1pass-vaultwarden-sync/internal/sync"
 )
+
+func TestMain(m *testing.M) {
+	goleak.VerifyTestMain(m)
+}
 
 // --- mocks ---
 
@@ -32,16 +39,16 @@ type mockSink struct {
 func newMockSink(items ...syncp.Item) *mockSink {
 	s := &mockSink{items: make(map[string]*syncp.Item)}
 	for i := range items {
-		s.items[items[i].ExternalID] = &items[i]
+		s.items[items[i].Name] = &items[i]
 	}
 	return s
 }
 
-func (m *mockSink) GetItem(_ context.Context, externalID string) (*syncp.Item, error) {
+func (m *mockSink) GetItem(_ context.Context, name string) (*syncp.Item, error) {
 	if m.getErr != nil {
 		return nil, m.getErr
 	}
-	item, ok := m.items[externalID]
+	item, ok := m.items[name]
 	if !ok {
 		return nil, nil
 	}
@@ -234,6 +241,86 @@ func TestEngine_Apply_PropagatesErrors(t *testing.T) {
 	if errs != 1 {
 		t.Errorf("got %d error events, want 1", errs)
 	}
+}
+
+// --- concurrency tests ---
+
+// blockingSink is a sink whose CreateItem blocks until the context is cancelled.
+type blockingSink struct {
+	started chan struct{}
+	once    sync.Once
+}
+
+func newBlockingSink() *blockingSink {
+	return &blockingSink{started: make(chan struct{})}
+}
+
+func (b *blockingSink) GetItem(_ context.Context, _ string) (*syncp.Item, error) { return nil, nil }
+func (b *blockingSink) UpdateItem(_ context.Context, _ syncp.Item) error          { return nil }
+func (b *blockingSink) CreateItem(ctx context.Context, _ syncp.Item) error {
+	b.once.Do(func() { close(b.started) })
+	<-ctx.Done()
+	return ctx.Err()
+}
+
+// TestApply_ContextCancellation verifies that Apply returns promptly when the
+// context is cancelled mid-sync, with no goroutine leak.
+func TestApply_ContextCancellation(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	sink := newBlockingSink()
+	src := &mockSource{items: []syncp.Item{item("a", "A", t1)}}
+	eng := syncp.NewEngine(src, sink)
+
+	plan, err := eng.Plan(context.Background())
+	if err != nil {
+		t.Fatalf("Plan(): %v", err)
+	}
+
+	ch := make(chan syncp.ProgressEvent, len(plan.Items)+1)
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		eng.Apply(ctx, plan, ch)
+		close(ch)
+	}()
+
+	<-sink.started // wait until CreateItem is blocking
+	cancel()
+
+	select {
+	case <-done:
+		// Apply returned promptly after context cancellation — no goroutine leak.
+	case <-time.After(2 * time.Second):
+		t.Fatal("Apply did not return after context cancellation")
+	}
+}
+
+// TestApply_Concurrent runs Apply from multiple goroutines in parallel.
+// go test -race will surface any data races within Engine or its dependencies.
+func TestApply_Concurrent(t *testing.T) {
+	const workers = 4
+	var wg sync.WaitGroup
+	wg.Add(workers)
+	for i := 0; i < workers; i++ {
+		go func() {
+			defer wg.Done()
+			src := &mockSource{items: []syncp.Item{item("a", "A", t1)}}
+			eng := syncp.NewEngine(src, newMockSink())
+			plan, err := eng.Plan(context.Background())
+			if err != nil {
+				t.Errorf("Plan(): %v", err)
+				return
+			}
+			ch := make(chan syncp.ProgressEvent, len(plan.Items)+1)
+			eng.Apply(context.Background(), plan, ch)
+			close(ch)
+			for range ch {
+			}
+		}()
+	}
+	wg.Wait()
 }
 
 // --- fuzz ---

@@ -13,3 +13,5 @@ sync
 # Go
 *.test
 *.out
+
+*.log

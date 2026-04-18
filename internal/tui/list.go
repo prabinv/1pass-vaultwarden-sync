@@ -70,7 +70,7 @@ func newList(items []listItem, width, height int) list.Model {
 
 	l := list.New(listItems, itemDelegate{}, width, height)
 	l.SetShowTitle(false)
-	l.SetShowStatusBar(false)
+	l.SetShowStatusBar(true) // shows "1–5 of N" pagination info
 	l.SetFilteringEnabled(false)
 	l.SetShowHelp(false)
 	return l

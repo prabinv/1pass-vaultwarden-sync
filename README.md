@@ -1,6 +1,10 @@
 # 1pass-vaultwarden-sync
 
-Syncs all items from 1Password → Vaultwarden (self-hosted Bitwarden). Items are only updated when the 1Password copy is newer. Features an interactive TUI with a live preview list.
+Syncs all items from 1Password → Vaultwarden (self-hosted Bitwarden). Items are only updated when the 1Password copy is newer.
+
+Ships as two modes:
+- **CLI** — interactive Bubble Tea TUI for one-shot or watched syncs
+- **Web server** — multi-tenant service with a browser UI, PostgreSQL backend, and live SSE progress streaming
 
 ## Prerequisites
 
@@ -84,9 +88,49 @@ Skips the TUI confirmation and writes plain log output.
 ## Build
 
 ```sh
+# CLI binary
 go build -o 1pass-vaultwarden-sync ./cmd/sync
 ./1pass-vaultwarden-sync --watch 15m
+
+# Web server binary
+go build -o server ./cmd/server
+DATABASE_URL=... ENCRYPTION_KEY=... JWT_SECRET=... ./server
 ```
+
+## Web Server
+
+### Docker Compose (recommended)
+
+```sh
+cp .env.example .env
+# Fill in POSTGRES_PASSWORD, ENCRYPTION_KEY, JWT_SECRET
+docker compose -f docker/docker-compose.yml up
+```
+
+The server listens on `http://localhost:8080`. Database migrations run automatically at startup.
+
+### Environment variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `DATABASE_URL` | yes | PostgreSQL DSN (e.g. `postgres://sync:pass@localhost:5432/sync`) |
+| `ENCRYPTION_KEY` | yes | Passphrase for pgcrypto credential encryption (≥32 chars) |
+| `JWT_SECRET` | yes | HMAC-SHA256 signing secret for session JWTs (≥32 chars) |
+
+Generate secrets:
+
+```sh
+openssl rand -base64 32   # ENCRYPTION_KEY
+openssl rand -base64 32   # JWT_SECRET
+```
+
+### Features
+
+- Register / login with JWT stored as httpOnly cookie
+- Save Vaultwarden + 1Password credentials (encrypted at rest with pgcrypto)
+- Trigger a sync job and watch live progress via SSE
+- Full sync history with per-event replay on reconnect
+- Row-Level Security (RLS) enforced at the database layer — tenants cannot access each other's data
 
 ## Development
 
@@ -96,6 +140,12 @@ go test -race ./...
 
 # Coverage report
 go test -cover ./...
+
+# Run web server locally (hot-reload via task)
+task server
+
+# Run E2E tests (requires Docker)
+task e2e
 
 # Fuzz the sync engine timestamp logic (run for 30s)
 go test -fuzz=FuzzTimestampCompare -fuzztime=30s ./internal/sync/

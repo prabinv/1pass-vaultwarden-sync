@@ -21,7 +21,9 @@ type ItemSource interface {
 
 // ItemSink reads and writes items to a destination vault (e.g. Vaultwarden).
 type ItemSink interface {
-	GetItem(ctx context.Context, externalID string) (*Item, error)
+	// GetItem looks up an item by name. Returns nil if not found.
+	// The returned Item's ExternalID is the sink's native ID (e.g. Vaultwarden UUID).
+	GetItem(ctx context.Context, name string) (*Item, error)
 	CreateItem(ctx context.Context, item Item) error
 	UpdateItem(ctx context.Context, item Item) error
 }
@@ -35,10 +37,25 @@ const (
 	ActionSkip
 )
 
+// String returns a human-readable name for the action, used in logs and TUI output.
+func (a Action) String() string {
+	switch a {
+	case ActionCreate:
+		return "create"
+	case ActionUpdate:
+		return "update"
+	default:
+		return "skip"
+	}
+}
+
 // PlanItem pairs a source item with the action to be taken.
+// SinkExternalID is the sink's native ID for the matching item (non-empty only
+// for ActionUpdate). It is used to address the correct record on writes.
 type PlanItem struct {
-	Item   Item
-	Action Action
+	Item           Item
+	SinkExternalID string
+	Action         Action
 }
 
 // SyncPlan is the result of diffing source against sink before any writes occur.

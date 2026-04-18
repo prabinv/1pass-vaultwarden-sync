@@ -21,10 +21,13 @@ const (
 	stateDone
 )
 
+const defaultPageSize = 5
+
 // Config holds the options that control TUI behaviour.
 type Config struct {
 	AutoProceed bool          // skip confirmation (watch mode / --no-confirm)
 	WatchEvery  time.Duration // non-zero → show "Next sync in …" countdown
+	PageSize    int           // items per page in the preview/syncing list (default 5)
 }
 
 // Model is the root Bubble Tea model.
@@ -51,6 +54,9 @@ type Model struct {
 // New constructs the root TUI Model.
 func New(ctx context.Context, engine *syncp.Engine, cfg Config) Model {
 	ctx, cancel := context.WithCancel(ctx)
+	if cfg.PageSize <= 0 {
+		cfg.PageSize = defaultPageSize
+	}
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 	return Model{
@@ -184,10 +190,8 @@ func (m *Model) applyProgress(ev syncp.ProgressEvent) {
 }
 
 func (m Model) listHeight() int {
-	if m.windowHeight > 8 {
-		return m.windowHeight - 6
-	}
-	return 10
+	// +1 reserves one line for the paginator row rendered by bubbles/list.
+	return m.cfg.PageSize + 1
 }
 
 // View renders the current UI state.
@@ -209,7 +213,7 @@ func (m Model) View() string {
 		b.WriteString("\n")
 		b.WriteString(m.list.View())
 		b.WriteString("\n")
-		b.WriteString(styleHelp.Render("  j/k scroll  •  enter proceed  •  q quit"))
+		b.WriteString(styleHelp.Render("  j/k scroll  •  h/l page  •  enter proceed  •  q quit"))
 
 	case stateSyncing:
 		b.WriteString(styleTitle.Render("  Syncing…"))

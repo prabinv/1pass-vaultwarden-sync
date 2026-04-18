@@ -85,6 +85,7 @@ func (r *Runner) Enqueue(ctx context.Context, jobID, userID uuid.UUID) {
 
 func (r *Runner) run(ctx context.Context, jobID, userID uuid.UUID) {
 	fail := func(msg string) {
+		slog.ErrorContext(ctx, "jobrunner: job failed", "job_id", jobID, "error", msg)
 		r.jobStore.UpdateStatus(ctx, userID, jobID, "failed", &msg) //nolint:errcheck
 		payload, _ := json.Marshal(map[string]string{"error": msg})
 		r.Broadcast(jobID, Event{Type: "done", Payload: payload})
