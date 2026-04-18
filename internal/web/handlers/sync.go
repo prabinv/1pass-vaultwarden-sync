@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -92,10 +93,13 @@ func (h *SyncHandler) Stream(w http.ResponseWriter, r *http.Request) {
 	// Replay persisted events so page refresh mid-sync works.
 	if h.pool != nil {
 		var past []store.SyncJobEvent
-		store.WithUserID(r.Context(), h.pool, userID, func(tx pgx.Tx) error { //nolint:errcheck
-			past, _ = h.jobStore.ListEvents(r.Context(), tx, jobID)
-			return nil
-		})
+		if err := store.WithUserID(r.Context(), h.pool, userID, func(tx pgx.Tx) error {
+			var e error
+			past, e = h.jobStore.ListEvents(r.Context(), tx, jobID)
+			return e
+		}); err != nil {
+			slog.Warn("sync handler: replay events", "err", err)
+		}
 		for _, e := range past {
 			writeSSE(w, flusher, e.EventType, e.Payload)
 		}
