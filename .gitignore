@@ -9,9 +9,11 @@ sync
 # OMC state (not project source)
 .omc/
 .claude/
+.superpowers/
 
 # Go
 *.test
 *.out
 
 *.log
+.env
