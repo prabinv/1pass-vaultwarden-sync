@@ -80,8 +80,9 @@ func Exchange(
 		par = *tok.KdfParallelism
 	}
 
+	// Bitwarden always lowercases the email before using it as the KDF salt.
 	masterKey, err := DeriveMasterKey(
-		[]byte(masterPassword), []byte(email),
+		[]byte(masterPassword), []byte(strings.ToLower(email)),
 		KdfParams{Type: KdfType(tok.Kdf), Iterations: tok.KdfIterations, Memory: mem, Parallelism: par},
 	)
 	if err != nil {

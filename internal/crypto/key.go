@@ -9,6 +9,7 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 )
 
+
 // KdfType identifies the key derivation function used by the server.
 type KdfType int
 
@@ -57,7 +58,9 @@ func DeriveMasterKey(password, email []byte, p KdfParams) ([]byte, error) {
 		if itr == 0 {
 			itr = 3
 		}
-		return argon2.IDKey(password, email, itr, mem, par, 32), nil
+		// Bitwarden hashes the email with SHA-256 before using it as the Argon2id salt.
+		saltHash := sha256.Sum256(email)
+		return argon2.IDKey(password, saltHash[:], itr, mem, par, 32), nil
 
 	default:
 		return nil, fmt.Errorf("unsupported KDF type: %d", p.Type)

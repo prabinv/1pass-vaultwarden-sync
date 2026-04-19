@@ -41,30 +41,30 @@ func Login(errMsg string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<h1>Login</h1>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"min-h-screen flex items-center justify-center px-4\"><div class=\"w-full max-w-sm\"><div class=\"text-center mb-8\"><div class=\"text-4xl mb-3\">🔐</div><h1 class=\"text-2xl font-bold text-slate-900\">1pass-vw-sync</h1><p class=\"text-slate-500 text-sm mt-1\">Sign in to manage your vault sync</p></div><div class=\"bg-white rounded-2xl shadow-sm border border-slate-200 p-8\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if errMsg != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<p class=\"error\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(errMsg)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/auth.templ`, Line: 7, Col: 28}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/auth.templ`, Line: 14, Col: 106}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " <form method=\"POST\" action=\"/auth/login\"><label>Email<input type=\"email\" name=\"email\" required></label> <label>Password<input type=\"password\" name=\"password\" required></label> <button type=\"submit\">Login</button></form><p><a href=\"/auth/register\">Create an account</a></p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<form method=\"POST\" action=\"/auth/login\" class=\"space-y-4\"><div><label class=\"block text-sm font-medium text-slate-700 mb-1\">Email</label> <input type=\"email\" name=\"email\" required class=\"w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500\"></div><div x-data=\"{ show: false }\"><label class=\"block text-sm font-medium text-slate-700 mb-1\">Password</label><div class=\"relative\"><input :type=\"show ? 'text' : 'password'\" name=\"password\" required class=\"w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 pr-10\"> <button type=\"button\" @click=\"show = !show\" class=\"absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs\"><span x-text=\"show ? 'Hide' : 'Show'\">Show</span></button></div></div><button type=\"submit\" class=\"w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors\">Sign in</button></form><p class=\"text-center text-sm text-slate-500 mt-6\">No account? <a href=\"/auth/register\" class=\"text-indigo-600 hover:underline\">Create one</a></p></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -111,30 +111,30 @@ func Register(errMsg string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<h1>Create Account</h1>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"min-h-screen flex items-center justify-center px-4\"><div class=\"w-full max-w-sm\"><div class=\"text-center mb-8\"><div class=\"text-4xl mb-3\">🔐</div><h1 class=\"text-2xl font-bold text-slate-900\">1pass-vw-sync</h1><p class=\"text-slate-500 text-sm mt-1\">Create your account</p></div><div class=\"bg-white rounded-2xl shadow-sm border border-slate-200 p-8\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if errMsg != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<p class=\"error\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(errMsg)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/auth.templ`, Line: 22, Col: 28}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/auth.templ`, Line: 58, Col: 106}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " <form method=\"POST\" action=\"/auth/register\"><label>Email<input type=\"email\" name=\"email\" required></label> <label>Password<input type=\"password\" name=\"password\" required minlength=\"8\"></label> <button type=\"submit\">Register</button></form><p><a href=\"/auth/login\">Already have an account?</a></p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<form method=\"POST\" action=\"/auth/register\" class=\"space-y-4\"><div><label class=\"block text-sm font-medium text-slate-700 mb-1\">Email</label> <input type=\"email\" name=\"email\" required class=\"w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500\"></div><div x-data=\"{ show: false }\"><label class=\"block text-sm font-medium text-slate-700 mb-1\">Password</label><div class=\"relative\"><input :type=\"show ? 'text' : 'password'\" name=\"password\" required minlength=\"8\" class=\"w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 pr-10\"> <button type=\"button\" @click=\"show = !show\" class=\"absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs\"><span x-text=\"show ? 'Hide' : 'Show'\">Show</span></button></div></div><button type=\"submit\" class=\"w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors\">Create account</button></form><p class=\"text-center text-sm text-slate-500 mt-6\">Have an account? <a href=\"/auth/login\" class=\"text-indigo-600 hover:underline\">Sign in</a></p></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

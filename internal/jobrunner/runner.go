@@ -79,11 +79,12 @@ func (r *Runner) Broadcast(jobID uuid.UUID, e Event) {
 }
 
 // Enqueue launches the sync job in a new goroutine, detached from the request context.
-func (r *Runner) Enqueue(ctx context.Context, jobID, userID uuid.UUID) {
-	go r.run(context.WithoutCancel(ctx), jobID, userID)
+// selectedIDs restricts the sync to items with those ExternalIDs; empty means all items.
+func (r *Runner) Enqueue(ctx context.Context, jobID, userID uuid.UUID, selectedIDs []string) {
+	go r.run(context.WithoutCancel(ctx), jobID, userID, selectedIDs)
 }
 
-func (r *Runner) run(ctx context.Context, jobID, userID uuid.UUID) {
+func (r *Runner) run(ctx context.Context, jobID, userID uuid.UUID, selectedIDs []string) {
 	fail := func(msg string) {
 		slog.ErrorContext(ctx, "jobrunner: job failed", "job_id", jobID, "error", msg)
 		r.jobStore.UpdateStatus(ctx, userID, jobID, "failed", &msg) //nolint:errcheck
@@ -144,6 +145,20 @@ func (r *Runner) run(ctx context.Context, jobID, userID uuid.UUID) {
 	if err != nil {
 		fail(fmt.Sprintf("plan: %v", err))
 		return
+	}
+
+	if len(selectedIDs) > 0 {
+		keep := make(map[string]bool, len(selectedIDs))
+		for _, id := range selectedIDs {
+			keep[id] = true
+		}
+		filtered := plan.Items[:0]
+		for _, item := range plan.Items {
+			if keep[item.Item.ExternalID] {
+				filtered = append(filtered, item)
+			}
+		}
+		plan.Items = filtered
 	}
 
 	// Apply the plan and forward progress events.

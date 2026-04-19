@@ -11,13 +11,12 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
-	"github.com/jackc/pgx/v5"
 	"github.com/prabinv/1pass-vaultwarden-sync/internal/jobrunner"
 	migrations "github.com/prabinv/1pass-vaultwarden-sync/migrations"
 	"github.com/prabinv/1pass-vaultwarden-sync/internal/store"
 	"github.com/prabinv/1pass-vaultwarden-sync/internal/web/handlers"
 	webmw "github.com/prabinv/1pass-vaultwarden-sync/internal/web/middleware"
-	"github.com/prabinv/1pass-vaultwarden-sync/internal/web/templates"
+	"github.com/prabinv/1pass-vaultwarden-sync/internal/web/static"
 )
 
 func main() {
@@ -51,18 +50,21 @@ func main() {
 	}
 	defer pool.Close()
 
-	userStore := store.NewUserStore(pool)
-	credStore := store.NewCredentialsStore(pool, encKey)
-	jobStore  := store.NewJobStore(pool)
-	runner    := jobrunner.New(pool, credStore, jobStore)
+	userStore  := store.NewUserStore(pool)
+	credStore  := store.NewCredentialsStore(pool, encKey)
+	jobStore   := store.NewJobStore(pool)
+	runner     := jobrunner.New(pool, credStore, jobStore)
 
-	authH := handlers.NewAuthHandler(userStore, jwtSec)
-	credH := handlers.NewCredentialsHandler(pool, credStore)
-	syncH := handlers.NewSyncHandler(pool, jobStore, runner)
+	authH      := handlers.NewAuthHandler(userStore, jwtSec)
+	dashH      := handlers.NewDashboardHandler(pool, jobStore, credStore)
+	settingsH  := handlers.NewSettingsHandler(pool, credStore)
+	syncH      := handlers.NewSyncHandler(pool, jobStore, credStore, runner)
 
 	r := chi.NewRouter()
 	r.Use(chimw.Logger)
 	r.Use(chimw.Recoverer)
+
+	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.FS(static.FS))))
 
 	// Public routes.
 	r.Get("/auth/login",     authH.ShowLogin)
@@ -75,23 +77,22 @@ func main() {
 	r.Group(func(r chi.Router) {
 		r.Use(webmw.Auth(jwtSec))
 
-		r.Get("/", func(w http.ResponseWriter, req *http.Request) {
-			userID := webmw.UserIDFromContext(req.Context())
-			var jobs []store.SyncJob
-			store.WithUserID(req.Context(), pool, userID, func(tx pgx.Tx) error { //nolint:errcheck
-				var e error
-				jobs, e = jobStore.ListJobs(req.Context(), tx, userID)
-				return e
-			})
-			templates.Dashboard(jobs).Render(req.Context(), w) //nolint:errcheck
-		})
+		r.Get("/", dashH.Show)
 
-		r.Get("/credentials",  credH.Show)
-		r.Post("/credentials", credH.Save)
-
+		r.Get("/sync/new",              syncH.ShowPlan)
+		r.Get("/sync/plan",             syncH.Plan)
 		r.Post("/sync/trigger",         syncH.Trigger)
 		r.Get("/sync/jobs/{id}",        syncH.JobDetail)
 		r.Get("/sync/jobs/{id}/stream", syncH.Stream)
+
+		r.Get("/settings",      settingsH.ShowSettings)
+		r.Post("/settings",     settingsH.SaveSettings)
+		r.Get("/settings/test", settingsH.TestConnection)
+
+		// Backward compat redirect.
+		r.Get("/credentials", func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, "/settings", http.StatusMovedPermanently)
+		})
 	})
 
 	slog.Info("server starting", "port", port)

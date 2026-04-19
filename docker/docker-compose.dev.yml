@@ -1,0 +1,22 @@
+services:
+  server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dev
+    develop:
+      watch:
+        - action: sync+restart
+          path: ../cmd
+          target: /app/cmd
+        - action: sync+restart
+          path: ../internal
+          target: /app/internal
+          ignore:
+            - "**/*_templ.go"
+        - action: sync+restart
+          path: ../tailwind.config.js
+          target: /app/tailwind.config.js
+        - action: rebuild
+          path: ../go.mod
+        - action: rebuild
+          path: ../go.sum

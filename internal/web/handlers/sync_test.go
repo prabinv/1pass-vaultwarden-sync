@@ -22,7 +22,7 @@ func chiCtx(r *http.Request, key, val string) *http.Request {
 
 func TestSyncHandler_Stream_ContentType(t *testing.T) {
 	runner := jobrunner.New(nil, nil, nil)
-	h := handlers.NewSyncHandler(nil, nil, runner)
+	h := handlers.NewSyncHandler(nil, nil, nil, runner)
 
 	jobID := uuid.New()
 	ctx, cancel := context.WithCancel(context.Background())

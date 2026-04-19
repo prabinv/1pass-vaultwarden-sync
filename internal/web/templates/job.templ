@@ -1,27 +1,164 @@
 package templates
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/prabinv/1pass-vaultwarden-sync/internal/store"
 )
 
-templ JobDetail(job *store.SyncJob) {
+templ JobDetail(job *store.SyncJob, events []store.SyncJobEvent) {
 	@Layout("Sync Job") {
 		@Nav()
-		<h1>Sync Job</h1>
-		<p>ID: <code>{ job.ID.String() }</code></p>
-		<p>Status: <strong id="job-status">{ job.Status }</strong></p>
-		<div
-			data-on-load={ fmt.Sprintf("$$get('/sync/jobs/%s/stream')", job.ID) }
-			data-signals="{events: []}"
-		>
-			<ul id="events">
-				<template data-for="event in $events">
-					<li data-text="event.type + ': ' + JSON.stringify(event.payload)"></li>
-				</template>
-			</ul>
+		<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+			<div class="flex items-center justify-between mb-6">
+				<div>
+					<h1 class="text-xl font-semibold text-slate-900">Sync Job</h1>
+					<p class="text-xs text-slate-400 font-mono mt-0.5">{ job.ID.String() }</p>
+				</div>
+				<a href="/" class="text-sm text-slate-500 hover:text-slate-800 transition-colors">← Dashboard</a>
+			</div>
+			<div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+				<div class="px-5 py-4 border-b border-slate-100 flex items-center gap-3">
+					<span class="text-sm font-medium text-slate-700">Status</span>
+					@statusBadge(job.Status)
+				</div>
+				if job.Status == "running" {
+					@liveJobProgress(job.ID.String())
+				} else {
+					@staticJobProgress(job, events)
+				}
+			</div>
 		</div>
-		<p><a href="/">← Back to Dashboard</a></p>
 	}
+}
+
+templ liveJobProgress(jobID string) {
+	<div
+		x-data='{ items: [], completed: false }'
+		x-init={ fmt.Sprintf("initSSE($el, '%s')", jobID) }
+		class="p-5"
+	>
+		<p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Progress</p>
+		<ul x-ref="list" class="space-y-1.5 min-h-8">
+			<li x-show="items.length === 0" class="text-sm text-slate-400 flex items-center gap-2">
+				<svg class="animate-spin h-3.5 w-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24">
+					<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+					<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+				</svg>
+				Waiting for events…
+			</li>
+			<template x-for="(item, i) in items" :key="i">
+				<li class="flex items-center gap-2 text-sm">
+					<span x-text="icon(item.action)" class="w-4 text-center"></span>
+					<span :class="labelClass(item.action)" x-text="actionLabel(item.action) + ': ' + item.name"></span>
+				</li>
+			</template>
+		</ul>
+		<div x-show="completed" x-cloak class="mt-6 pt-5 border-t border-slate-100 flex items-center gap-2 text-sm text-green-700 font-medium">
+			<span>✅</span>
+			<span>Sync completed.</span>
+			<a href="/" class="text-indigo-600 hover:underline ml-1">Back to Dashboard</a>
+		</div>
+	</div>
+	<script>
+	function initSSE(el, jobID) {
+		const es = new EventSource('/sync/jobs/' + jobID + '/stream');
+		const comp = Alpine.$data(el);
+		const actions = ['create', 'update', 'skip'];
+		actions.forEach(type => {
+			es.addEventListener(type, e => {
+				try {
+					const d = JSON.parse(e.data);
+					comp.items.push({ action: type, name: d.Item ? d.Item.Name : type });
+				} catch (_) {}
+			});
+		});
+		es.addEventListener('done', () => {
+			comp.completed = true;
+			es.close();
+		});
+	}
+	function icon(action) {
+		return { create: '+', update: '↑', skip: '—' }[action] || '•';
+	}
+	function labelClass(action) {
+		return { create: 'text-slate-700', update: 'text-slate-700', skip: 'text-slate-400' }[action] || '';
+	}
+	function actionLabel(action) {
+		return action.charAt(0).toUpperCase() + action.slice(1);
+	}
+	</script>
+}
+
+templ staticJobProgress(job *store.SyncJob, events []store.SyncJobEvent) {
+	<div class="p-5">
+		<p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Progress</p>
+		if len(events) == 0 {
+			<p class="text-sm text-slate-400">No events recorded.</p>
+		} else {
+			<ul class="space-y-1.5">
+				for _, ev := range events {
+					@staticEventItem(ev)
+				}
+			</ul>
+		}
+		<div class="mt-6 pt-5 border-t border-slate-100">
+			if job.Status == "done" {
+				<div class="flex items-center gap-2 text-sm text-green-700 font-medium">
+					<span>✅</span>
+					<span>Sync completed</span>
+					<span class="text-slate-400 font-normal ml-2">{ fmtTime(job.FinishedAt) }</span>
+				</div>
+			} else if job.Status == "failed" {
+				<div class="flex flex-col gap-1">
+					<div class="flex items-center gap-2 text-sm text-red-700 font-medium">
+						<span>❌</span>
+						<span>Sync failed</span>
+						<span class="text-slate-400 font-normal ml-2">{ fmtTime(job.FinishedAt) }</span>
+					</div>
+					if job.Error != nil {
+						<p class="text-xs text-red-500 font-mono bg-red-50 px-3 py-1.5 rounded mt-1">{ *job.Error }</p>
+					}
+				</div>
+			}
+		</div>
+	</div>
+}
+
+templ staticEventItem(ev store.SyncJobEvent) {
+	switch ev.EventType {
+		case "create":
+			<li class="flex items-center gap-2 text-sm text-slate-700">
+				<span class="w-4 text-center text-green-500">+</span>
+				<span>Created: { eventItemName(ev) }</span>
+			</li>
+		case "update":
+			<li class="flex items-center gap-2 text-sm text-slate-700">
+				<span class="w-4 text-center text-blue-500">↑</span>
+				<span>Updated: { eventItemName(ev) }</span>
+			</li>
+		case "skip":
+			<li class="flex items-center gap-2 text-sm text-slate-400">
+				<span class="w-4 text-center">—</span>
+				<span>Skipped: { eventItemName(ev) }</span>
+			</li>
+		default:
+			<li class="flex items-center gap-2 text-sm text-slate-400">
+				<span class="w-4 text-center">•</span>
+				<span>{ ev.EventType }</span>
+			</li>
+	}
+}
+
+func eventItemName(ev store.SyncJobEvent) string {
+	var pe struct {
+		Item struct {
+			Name string
+		}
+	}
+	if err := json.Unmarshal(ev.Payload, &pe); err == nil && pe.Item.Name != "" {
+		return pe.Item.Name
+	}
+	return ev.EventType
 }

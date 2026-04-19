@@ -2,38 +2,37 @@ package templates
 
 templ Layout(title string) {
 	<!DOCTYPE html>
-	<html lang="en">
+	<html lang="en" class="h-full">
 	<head>
 		<meta charset="UTF-8"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 		<title>{ title } — 1pass-vaultwarden-sync</title>
-		<script type="module" src="https://cdn.jsdelivr.net/gh/starfederation/datastar@v1.0.0-beta.11/bundles/datastar.js"></script>
-		<style>
-			body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
-			.error  { color: #c0392b; background: #fdecea; padding: .5rem; border-radius: 4px; }
-			.success{ color: #1a7a4a; background: #eafaf1; padding: .5rem; border-radius: 4px; }
-			nav a   { margin-right: 1rem; text-decoration: none; }
-			table   { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-			td, th  { padding: .5rem .75rem; border-bottom: 1px solid #eee; text-align: left; }
-			th      { background: #f8f8f8; font-weight: 600; }
-			label   { display: block; margin: .5rem 0 1rem; }
-			input   { width: 100%; padding: .5rem; box-sizing: border-box; margin-top: .25rem; }
-			button  { padding: .5rem 1.25rem; cursor: pointer; }
-		</style>
+		<link href="/static/css/tailwind.css" rel="stylesheet"/>
+		<script src="https://unpkg.com/htmx.org@2.0.0"></script>
+		<script src="https://unpkg.com/htmx-ext-sse@2.2.2/sse.js"></script>
+		<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 	</head>
-	<body>
+	<body class="h-full bg-slate-50 text-slate-900 font-sans antialiased">
 		{ children... }
 	</body>
 	</html>
 }
 
 templ Nav() {
-	<nav>
-		<a href="/">Dashboard</a>
-		<a href="/credentials">Credentials</a>
-		<form method="POST" action="/auth/logout" style="display:inline">
-			<button type="submit">Logout</button>
-		</form>
+	<nav class="bg-white border-b border-slate-200">
+		<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div class="flex items-center justify-between h-14">
+				<div class="flex items-center gap-6">
+					<span class="font-semibold text-slate-800 text-sm tracking-tight">🔐 1pass-vw-sync</span>
+					<div class="flex gap-4">
+						<a href="/" class="text-sm text-slate-600 hover:text-slate-900 transition-colors">Dashboard</a>
+						<a href="/settings" class="text-sm text-slate-600 hover:text-slate-900 transition-colors">Settings</a>
+					</div>
+				</div>
+				<form method="POST" action="/auth/logout">
+					<button type="submit" class="text-sm text-slate-500 hover:text-slate-800 transition-colors">Logout</button>
+				</form>
+			</div>
+		</div>
 	</nav>
-	<hr/>
 }

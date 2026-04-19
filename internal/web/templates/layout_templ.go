@@ -29,7 +29,7 @@ func Layout(title string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\" class=\"h-full\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -42,7 +42,7 @@ func Layout(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " — 1pass-vaultwarden-sync</title><script type=\"module\" src=\"https://cdn.jsdelivr.net/gh/starfederation/datastar@v1.0.0-beta.11/bundles/datastar.js\"></script><style>\n\t\t\tbody { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }\n\t\t\t.error  { color: #c0392b; background: #fdecea; padding: .5rem; border-radius: 4px; }\n\t\t\t.success{ color: #1a7a4a; background: #eafaf1; padding: .5rem; border-radius: 4px; }\n\t\t\tnav a   { margin-right: 1rem; text-decoration: none; }\n\t\t\ttable   { width: 100%; border-collapse: collapse; margin-top: 1rem; }\n\t\t\ttd, th  { padding: .5rem .75rem; border-bottom: 1px solid #eee; text-align: left; }\n\t\t\tth      { background: #f8f8f8; font-weight: 600; }\n\t\t\tlabel   { display: block; margin: .5rem 0 1rem; }\n\t\t\tinput   { width: 100%; padding: .5rem; box-sizing: border-box; margin-top: .25rem; }\n\t\t\tbutton  { padding: .5rem 1.25rem; cursor: pointer; }\n\t\t</style></head><body>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " — 1pass-vaultwarden-sync</title><link href=\"/static/css/tailwind.css\" rel=\"stylesheet\"><script src=\"https://unpkg.com/htmx.org@2.0.0\"></script><script src=\"https://unpkg.com/htmx-ext-sse@2.2.2/sse.js\"></script><script defer src=\"https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js\"></script></head><body class=\"h-full bg-slate-50 text-slate-900 font-sans antialiased\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -79,7 +79,7 @@ func Nav() templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<nav><a href=\"/\">Dashboard</a> <a href=\"/credentials\">Credentials</a><form method=\"POST\" action=\"/auth/logout\" style=\"display:inline\"><button type=\"submit\">Logout</button></form></nav><hr>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<nav class=\"bg-white border-b border-slate-200\"><div class=\"max-w-5xl mx-auto px-4 sm:px-6 lg:px-8\"><div class=\"flex items-center justify-between h-14\"><div class=\"flex items-center gap-6\"><span class=\"font-semibold text-slate-800 text-sm tracking-tight\">🔐 1pass-vw-sync</span><div class=\"flex gap-4\"><a href=\"/\" class=\"text-sm text-slate-600 hover:text-slate-900 transition-colors\">Dashboard</a> <a href=\"/settings\" class=\"text-sm text-slate-600 hover:text-slate-900 transition-colors\">Settings</a></div></div><form method=\"POST\" action=\"/auth/logout\"><button type=\"submit\" class=\"text-sm text-slate-500 hover:text-slate-800 transition-colors\">Logout</button></form></div></div></nav>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

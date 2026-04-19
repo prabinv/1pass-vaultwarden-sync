@@ -128,6 +128,19 @@ func (s *JobStore) GetJob(ctx context.Context, tx pgx.Tx, jobID uuid.UUID) (*Syn
 	return &j, nil
 }
 
+// HasActiveJob returns true if the user has a job currently in 'running' status.
+// Must run inside WithUserID (RLS).
+func (s *JobStore) HasActiveJob(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (bool, error) {
+	var exists bool
+	err := tx.QueryRow(ctx,
+		`SELECT EXISTS(SELECT 1 FROM sync_jobs WHERE user_id = current_setting('app.user_id')::uuid AND status = 'running')`,
+	).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("has active job: %w", err)
+	}
+	return exists, nil
+}
+
 // ListJobs returns the 50 most recent jobs for userID. Must run inside WithUserID (RLS).
 func (s *JobStore) ListJobs(ctx context.Context, tx pgx.Tx, userID uuid.UUID) ([]SyncJob, error) {
 	rows, err := tx.Query(ctx,

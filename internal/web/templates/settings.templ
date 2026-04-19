@@ -1,0 +1,187 @@
+package templates
+
+import "github.com/prabinv/1pass-vaultwarden-sync/internal/store"
+
+// TestResult holds the outcome of a single connectivity test.
+type TestResult struct {
+	Name    string
+	OK      bool
+	Message string
+}
+
+templ SettingsForm(creds *store.Credentials, saved bool, errMsg string) {
+	<form
+		method="POST"
+		action="/settings"
+		hx-post="/settings"
+		hx-target="this"
+		hx-swap="outerHTML"
+		class="space-y-8"
+	>
+		if saved {
+			<div class="px-4 py-3 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm">
+				Credentials saved successfully.
+			</div>
+		}
+		if errMsg != "" {
+			<div class="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">{ errMsg }</div>
+		}
+		<div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+			<h2 class="text-sm font-semibold text-slate-800 uppercase tracking-wide">1Password</h2>
+			<div x-data="{ show: false }">
+				<label class="block text-sm font-medium text-slate-700 mb-1">Service Account Token</label>
+				<div class="relative">
+					<input
+						:type="show ? 'text' : 'password'"
+						name="op_token"
+						value={ credVal(creds, "op") }
+						required
+						class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 pr-16"
+						placeholder="ops_..."
+					/>
+					<button type="button" @click="show = !show"
+						class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600">
+						<span x-text="show ? 'Hide' : 'Show'">Show</span>
+					</button>
+				</div>
+			</div>
+		</div>
+		<div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+			<h2 class="text-sm font-semibold text-slate-800 uppercase tracking-wide">Vaultwarden</h2>
+			<div>
+				<label class="block text-sm font-medium text-slate-700 mb-1">URL</label>
+				<input
+					type="url"
+					name="vw_url"
+					value={ credVal(creds, "url") }
+					required
+					placeholder="https://vault.example.com"
+					class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+				/>
+			</div>
+			<div>
+				<label class="block text-sm font-medium text-slate-700 mb-1">Client ID</label>
+				<input
+					type="text"
+					name="vw_client_id"
+					value={ credVal(creds, "cid") }
+					required
+					class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+				/>
+			</div>
+			<div x-data="{ show: false }">
+				<label class="block text-sm font-medium text-slate-700 mb-1">Client Secret</label>
+				<div class="relative">
+					<input
+						:type="show ? 'text' : 'password'"
+						name="vw_client_secret"
+						value={ credVal(creds, "cs") }
+						required
+						class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 pr-16"
+					/>
+					<button type="button" @click="show = !show"
+						class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600">
+						<span x-text="show ? 'Hide' : 'Show'">Show</span>
+					</button>
+				</div>
+			</div>
+			<div x-data="{ show: false }">
+				<label class="block text-sm font-medium text-slate-700 mb-1">Master Password</label>
+				<div class="relative">
+					<input
+						:type="show ? 'text' : 'password'"
+						name="vw_master_password"
+						value={ credVal(creds, "mp") }
+						required
+						class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 pr-16"
+					/>
+					<button type="button" @click="show = !show"
+						class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600">
+						<span x-text="show ? 'Hide' : 'Show'">Show</span>
+					</button>
+				</div>
+			</div>
+		</div>
+		<div class="flex justify-end">
+			<button
+				type="submit"
+				class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors"
+			>
+				Save Settings
+			</button>
+		</div>
+	</form>
+}
+
+templ SettingsPage(creds *store.Credentials, saved bool, errMsg string) {
+	@Layout("Settings") {
+		@Nav()
+		<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+			<h1 class="text-xl font-semibold text-slate-900 mb-6">Settings</h1>
+			@SettingsForm(creds, saved, errMsg)
+			<div class="mt-8 bg-white  rounded-2xl border border-slate-200 shadow-sm p-6">
+				<div class="flex items-center justify-between mb-4">
+					<h2 class="text-sm font-semibold text-slate-800 uppercase tracking-wide">Connection Test</h2>
+					<div id="test-spinner" class="htmx-indicator">
+						<svg class="animate-spin h-4 w-4 text-indigo-500" fill="none" viewBox="0 0 24 24">
+							<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+							<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+						</svg>
+					</div>
+				</div>
+				<button
+					type="button"
+					hx-get="/settings/test"
+					hx-target="#test-results"
+					hx-swap="innerHTML"
+					hx-indicator="#test-spinner"
+					class="mb-4 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg transition-colors"
+				>
+					Run Test
+				</button>
+				<div id="test-results">
+					<p class="text-sm text-slate-400">Click "Run Test" to check connectivity to each system.</p>
+				</div>
+			</div>
+		</div>
+	}
+}
+
+templ TestConnectionResult(op TestResult, vw TestResult) {
+	<div class="space-y-3">
+		@testResultRow(op)
+		@testResultRow(vw)
+	</div>
+}
+
+templ testResultRow(r TestResult) {
+	<div class="flex items-start gap-3 px-4 py-3 rounded-xl border text-sm">
+		if r.OK {
+			<span class="text-green-500 mt-0.5">✓</span>
+			<div>
+				<span class="font-medium text-slate-800">{ r.Name }</span>
+				<span class="text-slate-500 ml-2">{ r.Message }</span>
+			</div>
+		} else {
+			<span class="text-red-500 mt-0.5">✕</span>
+			<div>
+				<span class="font-medium text-slate-800">{ r.Name }</span>
+				<span class="text-red-600 ml-2">{ r.Message }</span>
+			</div>
+		}
+	</div>
+}
+
+func credVal(c *store.Credentials, field string) string {
+	if c == nil {
+		return ""
+	}
+	switch field {
+	case "op":  return c.OPServiceAccountToken
+	case "url": return c.VaultwardenURL
+	case "cid": return c.VaultwardenClientID
+	case "cs":  return c.VaultwardenClientSecret
+	case "mp":  return c.VaultwardenMasterPassword
+	}
+	return ""
+}

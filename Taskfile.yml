@@ -132,10 +132,25 @@ tasks:
     cmds:
       - go run ./cmd/sync --watch {{.INTERVAL}}
 
+  css:build:
+    desc: Generate Tailwind CSS from templates (requires tailwindcss CLI or npx)
+    cmds:
+      - |
+        if command -v tailwindcss >/dev/null 2>&1; then
+          tailwindcss -i ./internal/web/static/css/input.css -o ./internal/web/static/css/tailwind.css --minify
+        else
+          npx tailwindcss@3.4.17 -i ./internal/web/static/css/input.css -o ./internal/web/static/css/tailwind.css --minify
+        fi
+
   server:
     desc: Run the web server locally (requires .env)
     cmds:
       - go run ./cmd/server/
+
+  dev:
+    desc: Run dev stack with live reload on Go file changes (Docker Compose watch)
+    cmds:
+      - docker compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml --env-file .env up --watch --build
 
   e2e:
     desc: Run E2E tests against full stack in Docker
