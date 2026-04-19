@@ -4,6 +4,7 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
+RUN ls -la /app/
 RUN CGO_ENABLED=1 GOOS=linux go build -o server ./cmd/server
 
 FROM alpine:3.19
