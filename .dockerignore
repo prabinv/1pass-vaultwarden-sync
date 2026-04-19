@@ -1,0 +1,15 @@
+.git
+.env
+.env.*
+!.env.example
+.DS_Store
+.idea
+.vscode
+.omc
+.claude
+.superpowers
+e2e/
+docs/
+*.log
+*.out
+*.test
