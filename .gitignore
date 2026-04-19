@@ -1,7 +1,7 @@
-# Binaries
-sync
-1pass-vaultwarden-sync
-server
+# Binaries (anchored to root so cmd/server/ is not excluded)
+/sync
+/1pass-vaultwarden-sync
+/server
 
 # IDE
 .idea/
